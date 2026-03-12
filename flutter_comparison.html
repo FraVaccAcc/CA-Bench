@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CA-Bench · Codex vs Copilot — Flutter Incremental</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    /* Accenture brand */
+    --purple: #A100FF;
+    --purple-dark: #7B00C4;
+    --purple-light: #C966FF;
+    --purple-bg: rgba(161,0,255,.07);
+    --purple-bg2: rgba(161,0,255,.12);
+
+    /* Agent palette — derived from purple */
+    --codex: #A100FF;
+    --codex-light: rgba(161,0,255,.10);
+    --copilot: #460073;
+    --copilot-light: rgba(70,0,115,.08);
+
+    /* Neutrals — light theme */
+    --bg: #F8F8FA;
+    --white: #FFFFFF;
+    --card: #FFFFFF;
+    --border: #E5E5EA;
+    --border-strong: #D1D1D6;
+    --text: #1A1A2E;
+    --text-secondary: #48485A;
+    --muted: #8E8E9A;
+    --green: #00875A;
+    --red: #DE350B;
+    --orange: #D97706;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.07);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Graphik', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    padding: 0 0 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== HEADER ===== */
+  .hero {
+    background: linear-gradient(135deg, #A100FF 0%, #7B00C4 50%, #460073 100%);
+    padding: 0;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -40%; right: -10%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%; left: -5%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px 42px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .hero-brand {
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.55);
+    margin-bottom: 8px;
+  }
+  .hero-text h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+  }
+  .hero-text .subtitle {
+    color: rgba(255,255,255,.7);
+    font-size: .88rem;
+    margin-top: 6px;
+    font-weight: 400;
+  }
+  .hero-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-self: center;
+  }
+  .hero-badges span {
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: .78rem;
+    color: rgba(255,255,255,.85);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .hero-badges span b { color: #fff; font-weight: 700; }
+  .hero-divider {
+    height: 1px;
+    background: rgba(255,255,255,.12);
+  }
+  .hero-bottom {
+    display: flex;
+    gap: 32px;
+    padding-top: 18px;
+    font-size: .78rem;
+    color: rgba(255,255,255,.6);
+    flex-wrap: wrap;
+  }
+  .hero-bottom span { font-weight: 500; }
+  .hero-bottom b { color: rgba(255,255,255,.9); font-weight: 600; }
+
+  /* ===== CONTAINER ===== */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== SECTION ===== */
+  .section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 40px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-size: .85rem;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 12px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: flex-end;
+    margin: 24px 0 0;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .legend-dot { width: 14px; height: 14px; border-radius: 4px; }
+  .legend-dot.codex { background: var(--codex); }
+  .legend-dot.copilot { background: var(--copilot); }
+
+  /* ===== KPI CARDS ===== */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 500px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--purple);
+    opacity: .5;
+  }
+  .kpi-card .label {
+    font-size: .7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .kpi-card .values {
+    display: flex;
+    justify-content: space-around;
+  }
+  .kpi-card .val {
+    text-align: center;
+  }
+  .kpi-card .val .num {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .kpi-card .val .agent-label {
+    font-size: .68rem;
+    font-weight: 600;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .kpi-card .val.codex .num { color: var(--codex); }
+  .kpi-card .val.codex .agent-label { color: var(--codex); opacity: .7; }
+  .kpi-card .val.copilot .num { color: var(--copilot); }
+  .kpi-card .val.copilot .agent-label { color: var(--copilot); opacity: .7; }
+
+  .kpi-card .divider {
+    width: 1px;
+    background: var(--border);
+    margin: 0 4px;
+    align-self: stretch;
+  }
+
+  /* Tooltip on KPI info icon */
+  .kpi-info {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    z-index: 2;
+  }
+  .kpi-info:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .kpi-tooltip {
+    display: none;
+    position: absolute;
+    top: 30px;
+    right: 6px;
+    width: 280px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: .72rem;
+    line-height: 1.55;
+    color: var(--text);
+    box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    z-index: 10;
+    pointer-events: none;
+  }
+  .kpi-tooltip b { color: var(--purple); }
+  .kpi-info:hover + .kpi-tooltip { display: block; }
+
+  .delta-badge {
+    display: inline-block;
+    font-size: .68rem;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 10px;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+  }
+  .delta-badge.positive { background: rgba(0,135,90,.08); color: var(--green); }
+  .delta-badge.negative { background: rgba(222,53,11,.07); color: var(--red); }
+  .delta-badge.neutral { background: rgba(142,142,154,.08); color: var(--muted); }
+
+  /* ===== FINDINGS ===== */
+  .findings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 800px) { .findings-grid { grid-template-columns: 1fr; } }
+
+  .finding-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+  .finding-card .f-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .finding-card .f-icon {
+    width: 36px; height: 36px;
+    background: var(--purple-bg);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .finding-card .f-title {
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+  }
+  .finding-card .f-body {
+    font-size: .82rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    flex: 1;
+  }
+  .finding-card .f-body b { color: var(--text); font-weight: 600; }
+  .finding-card .f-metrics {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .finding-card .f-metric {
+    flex: 1;
+    text-align: center;
+  }
+  .finding-card .f-metric .fm-label {
+    font-size: .68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-weight: 600;
+  }
+  .finding-card .f-metric .fm-val {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* ===== CHARTS ===== */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 800px) { .chart-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+  .chart-card h3 {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 14px;
+  }
+  .chart-card canvas { max-height: 260px; }
+  .chart-card.wide { grid-column: 1 / -1; }
+  .chart-card.wide canvas { max-height: 340px; }
+
+  /* ===== TABLE ===== */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    background: var(--card);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .82rem;
+  }
+  thead th {
+    background: #F3F3F6;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    padding: 11px 14px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+  }
+  td {
+    padding: 9px 14px;
+    border-top: 1px solid var(--border);
+    white-space: nowrap;
+    color: var(--text-secondary);
+  }
+  td b { color: var(--text); }
+  tr:hover td { background: rgba(161,0,255,.02); }
+
+  .agent-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: .73rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+  .agent-tag.codex { background: var(--codex-light); color: var(--codex); }
+  .agent-tag.copilot { background: var(--copilot-light); color: var(--copilot); }
+  .pass { color: var(--green); font-weight: 600; }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: .72rem;
+    margin-top: 56px;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div class="hero-text">
+        <div class="hero-brand">CA-Bench · Coding Agent Benchmark</div>
+        <h1>Codex vs Copilot</h1>
+        <p class="subtitle">Flutter Incremental — 5 step progressive build</p>
+      </div>
+      <div class="hero-badges">
+        <span>Model <b>gpt-5.4</b></span>
+        <span>Reasoning <b>medium</b></span>
+        <span>Steps <b>5</b></span>
+      </div>
+    </div>
+    <div class="hero-divider"></div>
+    <div class="hero-bottom">
+      <span>Operator policy: <b>Passive only</b></span>
+      <span>Execution: <b>Interactive PTY</b></span>
+      <span>Replicates: <b>1 per step</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot codex"></div> Codex</div>
+    <div class="legend-item"><div class="legend-dot copilot"></div> Copilot</div>
+  </div>
+
+  <!-- ===== KPI ===== -->
+  <div class="section-title">Headline KPIs</div>
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- ===== FINDINGS ===== -->
+  <div class="section-title">Key Findings</div>
+  <div class="findings-grid" id="findings-grid"></div>
+
+  <!-- ===== CHARTS ===== -->
+  <div class="section-title">Per-Step Comparison</div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>Wall Clock Time (s)</h3><canvas id="chart-wall"></canvas></div>
+    <div class="chart-card"><h3>Approval Prompts</h3><canvas id="chart-approvals"></canvas></div>
+    <div class="chart-card"><h3>Quality Score</h3><canvas id="chart-score"></canvas></div>
+    <!-- <div class="chart-card"><h3>Weighted Intervention Burden</h3><canvas id="chart-burden"></canvas></div> -->
+    <div class="chart-card"><h3>Output Tokens</h3><canvas id="chart-tokens"></canvas></div>
+    <!-- <div class="chart-card"><h3>Lines of Code Added</h3><canvas id="chart-lines"></canvas></div> -->
+    <div class="chart-card wide"><h3>Quality Radar — All Steps Average</h3><canvas id="chart-radar"></canvas></div>
+  </div>
+
+  <!-- ===== TABLE ===== -->
+  <div class="section-title">Step Detail</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Step</th><th>Title</th><th>Agent</th><th>Score</th><th>Time</th>
+          <th>Approvals</th>
+          <th>Build</th><th>Analyze</th><th>Test</th>
+          <th>Lines +</th><th>Tokens Out</th><th>Errors</th>
+        </tr>
+      </thead>
+      <tbody id="detail-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">CA-Bench · Flutter Incremental Benchmark · 5 steps · 10 step records (1 replicate per agent)</div>
+
+<script>
+// ===== DATA =====
+const steps = [
+  { i:1, title:'Bootstrap del progetto' },
+  { i:2, title:'Modello dominio' },
+  { i:3, title:'Data model e mapping' },
+  { i:4, title:'Networking layer' },
+  { i:5, title:'API service' },
+];
+// [codex, copilot] per step
+const D = {
+  wall:      [[136,313],[123,22],[101,96],[188,324],[180,188]],
+  approvals: [[6,9],[0,1],[3,3],[7,10],[4,8]],
+  accepted:  [[33,30],[15,1],[6,14],[41,66],[10,28]],
+  burden:    [[12,18],[0,2],[6,6],[14,20],[8,16]],
+  score:     [[4.26,4.26],[5.0,4.30],[5.0,5.0],[4.99,4.99],[5.0,4.99]],
+  outTokens: [[4690,12679],[0,0],[3808,4147],[6736,12459],[6474,7030]],
+  lines:     [[755,707],[0,0],[0,3],[49,49],[0,32]],
+  errors:    [[3,1],[0,0],[0,0],[1,0],[3,0]],
+};
+
+const radarLabels = ['Aderenza','Architettura','Coerenza','Completezza','Correttezza','Giudizio','Manutenibilità','Prod. Readiness'];
+const radarCodex  = [4.75,4.672,4.842,4.75,5.0,4.864,4.92,5.0];
+const radarCopilot = [4.416,4.336,4.84,4.416,5.0,4.75,4.918,5.0];
+
+const CODEX      = '#A100FF';
+const COPILOT    = '#460073';
+const CODEX_BG   = 'rgba(161,0,255,.18)';
+const COPILOT_BG = 'rgba(70,0,115,.14)';
+const stepLabels = steps.map(s => `Step ${s.i}`);
+
+// ===== KPI CARDS =====
+const kpis = [
+  { label:'Task Success',         cx:'5 / 5',  cp:'5 / 5',  delta:null,                cls:'neutral',
+    tip:'Number of steps completed successfully out of 5 total. A step is successful when the auto-grader passes (build + analyze + test all green).' },
+  { label:'Avg Quality Score',    cx:'4.85',   cp:'4.71',   delta:'Codex +3%',         cls:'positive',
+    tip:'Mean of <b>final_score</b> across all steps. Each step score is the average of 8 auto-graded dimensions (0–5 scale): <b>aderenza</b> (adherence to prompt), <b>architettura</b> (architecture quality), <b>coerenza</b> (consistency), <b>completezza</b> (completeness), <b>correttezza</b> (correctness), <b>giudizio</b> (judgment), <b>manutenibilità</b> (maintainability), <b>production_readiness</b>.' },
+  { label:'Total Wall Clock',     cx:'727 s',  cp:'943 s',  delta:'Codex 23% faster',  cls:'positive',
+    tip:'Sum of wall-clock time across all 5 steps. Measured from PTY session start to session end, including operator approval wait time.' },
+  { label:'Approval Prompts',     cx:'20',     cp:'31',     delta:'Copilot +55%',      cls:'negative',
+    tip:'Total number of times the agent paused to ask the human operator for permission (e.g. "May I run this command?"). Each prompt blocks execution until approved. Extracted from native session telemetry.' },
+  // { label:'Accepted Actions',     cx:'107',    cp:'150',    delta:'Copilot +40%',      cls:'negative' },
+  // { label:'Weighted Burden',      cx:'46',     cp:'64',     delta:'Copilot +39%',      cls:'negative' },
+  { label:'Output Tokens',        cx:'21.7 K', cp:'36.3 K', delta:'Copilot +67%',      cls:'negative',
+    tip:'Total output tokens generated by the model across all steps. Extracted from native session telemetry. Higher values indicate more verbose responses for equivalent task outcomes.' },
+  { label:'Passive Completions',  cx:'1',      cp:'0',      delta:'Codex only',        cls:'positive',
+    tip:'Number of steps completed with zero human interventions beyond the initial trust prompt. A passive completion means the agent worked fully autonomously from prompt to success.' },
+];
+
+const kpiGrid = document.getElementById('kpi-grid');
+kpis.forEach(k => {
+  const card = document.createElement('div');
+  card.className = 'kpi-card';
+  card.innerHTML = `
+    <span class="kpi-info">ℹ</span>
+    <div class="kpi-tooltip">${k.tip}</div>
+    <div class="label">${k.label}</div>
+    <div class="values">
+      <div class="val codex"><div class="num">${k.cx}</div><div class="agent-label">Codex</div></div>
+      <div class="divider"></div>
+      <div class="val copilot"><div class="num">${k.cp}</div><div class="agent-label">Copilot</div></div>
+    </div>
+    <div class="delta-badge ${k.cls}">${k.delta || 'Tie'}</div>
+  `;
+  kpiGrid.appendChild(card);
+});
+
+// ===== FINDINGS =====
+const findings = [
+  {
+    icon:'🖐', title:'Human Friction — Copilot requires ~55% more approvals',
+    body:`Across all 5 steps, Copilot triggered <b>31 approval prompts</b> vs Codex's <b>20</b>. The gap widens on complex steps (Step 4: 10 vs 7, Step 1: 9 vs 6). This is the single largest operational difference.`,
+    m:[{l:'Codex avg / step',v:'4.0',c:CODEX},{l:'Copilot avg / step',v:'6.2',c:COPILOT}]
+  },
+  {
+    icon:'⏱', title:'Execution Speed — Codex is ~25% faster overall',
+    body:`Codex completed the pipeline in <b>727 s</b> vs <b>943 s</b>. Most dramatic on Step 1 (136 s vs 313 s, 2.3× faster) and Step 4 (188 s vs 324 s, 1.7× faster).`,
+    m:[{l:'Codex total',v:'12 m 07 s',c:CODEX},{l:'Copilot total',v:'15 m 43 s',c:COPILOT}]
+  },
+  {
+    icon:'🪙', title:'Token Efficiency — Copilot uses 57% more output tokens',
+    body:`Copilot generated <b>36.3 K output tokens</b> vs Codex's <b>21.7 K</b> for equivalent quality results, suggesting more verbose responses per approval cycle.`,
+    m:[{l:'Codex tokens',v:'21.7 K',c:CODEX},{l:'Copilot tokens',v:'36.3 K',c:COPILOT}]
+  },
+  {
+    icon:'⭐', title:'Quality — Virtually identical output',
+    body:`Both scored within <b>1.5%</b> of each other (4.85 vs 4.78). 100% success, build, analyze and test pass rate. <b>Quality is not the differentiator — efficiency and friction are.</b>`,
+    m:[{l:'Codex avg',v:'4.85',c:CODEX},{l:'Copilot avg',v:'4.78',c:COPILOT}]
+  },
+  {
+    icon:'🔧', title:'Tool Errors — Codex has more but self-recovers',
+    body:`Codex encountered <b>6.5 tool errors</b> vs Copilot's <b>0.5</b>, but recovered autonomously every time — no human help needed. This reflects a more aggressive tool-use strategy.`,
+    m:[{l:'Codex errors',v:'6.5',c:CODEX},{l:'Copilot errors',v:'0.5',c:COPILOT}]
+  },
+  {
+    icon:'🤖', title:'Autonomy — Codex achieved 1 passive completion',
+    body:`On Step 2 (Domain Model), one Codex replicate completed with <b>zero human interventions</b> — a fully autonomous run. Copilot never achieved this.`,
+    m:[{l:'Codex passive',v:'1',c:CODEX},{l:'Copilot passive',v:'0',c:COPILOT}]
+  },
+];
+
+const fGrid = document.getElementById('findings-grid');
+findings.forEach(f => {
+  const card = document.createElement('div');
+  card.className = 'finding-card';
+  card.innerHTML = `
+    <div class="f-header">
+      <div class="f-icon">${f.icon}</div>
+      <div class="f-title">${f.title}</div>
+    </div>
+    <div class="f-body">${f.body}</div>
+    <div class="f-metrics">
+      ${f.m.map(m => `<div class="f-metric"><div class="fm-label">${m.l}</div><div class="fm-val" style="color:${m.c}">${m.v}</div></div>`).join('')}
+    </div>
+  `;
+  fGrid.appendChild(card);
+});
+
+// ===== CHART HELPERS =====
+Chart.defaults.color = '#8E8E9A';
+Chart.defaults.borderColor = '#E5E5EA';
+Chart.defaults.font.family = "'Graphik',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+
+function barChart(id, data, fmt) {
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: stepLabels,
+      datasets: [
+        { label:'Codex',  data:data.map(d=>d[0]), backgroundColor:CODEX_BG, borderColor:CODEX, borderWidth:2, borderRadius:5 },
+        { label:'Copilot',data:data.map(d=>d[1]), backgroundColor:COPILOT_BG, borderColor:COPILOT, borderWidth:2, borderRadius:5 },
+      ]
+    },
+    options: {
+      responsive:true,
+      plugins:{
+        legend:{ display:true, position:'top', labels:{ usePointStyle:true, pointStyle:'rectRounded', font:{size:11,weight:'600'} } },
+        tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: ${fmt ? fmt(ctx.parsed.y) : ctx.parsed.y}` } }
+      },
+      scales:{
+        y:{ beginAtZero:true, grid:{color:'rgba(0,0,0,.05)'}, ticks:{font:{size:11}} },
+        x:{ grid:{display:false}, ticks:{font:{size:11}} }
+      }
+    }
+  });
+}
+
+barChart('chart-wall', D.wall, v=>`${v.toFixed(0)} s`);
+barChart('chart-approvals', D.approvals);
+// barChart('chart-burden', D.burden);
+barChart('chart-tokens', D.outTokens, v=>`${(v/1000).toFixed(1)} K`);
+// barChart('chart-lines', D.lines);
+
+new Chart(document.getElementById('chart-score'), {
+  type:'bar',
+  data:{
+    labels:stepLabels,
+    datasets:[
+      { label:'Codex',  data:D.score.map(s=>s[0]), backgroundColor:CODEX_BG, borderColor:CODEX, borderWidth:2, borderRadius:5 },
+      { label:'Copilot',data:D.score.map(s=>s[1]), backgroundColor:COPILOT_BG, borderColor:COPILOT, borderWidth:2, borderRadius:5 },
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{ legend:{ display:true, position:'top', labels:{ usePointStyle:true, pointStyle:'rectRounded', font:{size:11,weight:'600'} } } },
+    scales:{
+      y:{ min:4.0, max:5.1, grid:{color:'rgba(0,0,0,.05)'}, ticks:{font:{size:11}} },
+      x:{ grid:{display:false}, ticks:{font:{size:11}} }
+    }
+  }
+});
+
+new Chart(document.getElementById('chart-radar'), {
+  type:'radar',
+  data:{
+    labels:radarLabels,
+    datasets:[
+      { label:'Codex', data:radarCodex, backgroundColor:'rgba(161,0,255,.10)', borderColor:CODEX, borderWidth:2, pointBackgroundColor:CODEX, pointRadius:4 },
+      { label:'Copilot', data:radarCopilot, backgroundColor:'rgba(70,0,115,.08)', borderColor:COPILOT, borderWidth:2, pointBackgroundColor:COPILOT, pointRadius:4 },
+    ]
+  },
+  options:{
+    responsive:true,
+    plugins:{ legend:{ position:'top', labels:{ usePointStyle:true, pointStyle:'rectRounded', font:{size:11,weight:'600'} } } },
+    scales:{
+      r:{ min:3.5, max:5.1, ticks:{stepSize:.5,backdropColor:'transparent',font:{size:10}}, grid:{color:'rgba(0,0,0,.06)'}, angleLines:{color:'rgba(0,0,0,.06)'}, pointLabels:{font:{size:11,weight:'600'}} }
+    }
+  }
+});
+
+// ===== TABLE =====
+const tbody = document.getElementById('detail-tbody');
+steps.forEach((s,si) => {
+  ['codex','copilot'].forEach((agent,ai) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><b>${s.i}</b></td>
+      <td>${s.title}</td>
+      <td><span class="agent-tag ${agent}">${agent}</span></td>
+      <td><b>${D.score[si][ai].toFixed(2)}</b></td>
+      <td>${D.wall[si][ai].toFixed(0)} s</td>
+      <td><b>${D.approvals[si][ai]}</b></td>
+      <td class="pass">✓</td>
+      <td class="pass">✓</td>
+      <td class="pass">✓</td>
+      <td>${D.lines[si][ai]}</td>
+      <td>${D.outTokens[si][ai].toLocaleString()}</td>
+      <td>${D.errors[si][ai]>0?`<span style="color:var(--orange)">${D.errors[si][ai]}</span>`:'—'}</td>
+    `;
+    tbody.appendChild(row);
+  });
+});
+</script>
+</body>
+</html>
