@@ -624,7 +624,7 @@
           <th>Step</th><th>Titolo</th><th>Agente</th><th>Punteggio</th><th>Tempo</th>
           <th>Approvazioni</th>
           <th>Build</th><th>Analisi</th><th>Test</th>
-          <th>Righe +</th><th>Token Out</th><th>Errori</th>
+          <th>Token Out</th><th>Errori</th>
         </tr>
       </thead>
       <tbody id="detail-tbody"></tbody>
@@ -839,7 +839,6 @@ steps.forEach((s,si) => {
       <td class="pass">✓</td>
       <td class="pass">✓</td>
       <td class="pass">✓</td>
-      <td>${D.lines[si][ai]}</td>
       <td>${D.outTokens[si][ai].toLocaleString()}</td>
       <td>${D.errors[si][ai]>0?`<span style="color:var(--orange)">${D.errors[si][ai]}</span>`:'—'}</td>
     `;
