@@ -271,7 +271,7 @@
     position: absolute;
     top: 30px;
     right: 6px;
-    width: 280px;
+    width: 310px;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -397,6 +397,59 @@
   .chart-card.wide { grid-column: 1 / -1; }
   .chart-card.wide canvas { max-height: 340px; }
 
+  /* ===== METHODOLOGY ===== */
+  .methodology-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 28px 20px;
+  }
+  .meth-intro {
+    font-size: .85rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    max-width: 900px;
+  }
+  .meth-intro b { color: var(--text); }
+  .meth-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 700px) { .meth-grid { grid-template-columns: 1fr; } }
+  .meth-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .meth-dim {
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 4px;
+  }
+  .meth-formula {
+    font-size: .72rem;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .meth-card p {
+    font-size: .78rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .meth-card p b { color: var(--text); }
+
   /* ===== TABLE ===== */
   .table-wrap {
     overflow-x: auto;
@@ -495,6 +548,57 @@
   <div class="section-title">KPI Principali</div>
   <div class="kpi-grid" id="kpi-grid"></div>
 
+  <!-- ===== METODOLOGIA ===== -->
+  <div class="section-title">Metodologia di Valutazione</div>
+  <div class="methodology-panel">
+    <div class="meth-intro">
+      <p>Il punteggio qualità di ogni step è calcolato da un <b>grader automatico</b> che non utilizza LLM né giudizio umano. Il grader raccoglie segnali oggettivi da tre fonti — lo <b>scenario di benchmark</b> (file e stringhe attese), la <b>toolchain Flutter</b> (analyze, build, test) e l'<b>analisi Git</b> (regressioni e riscritture) — e li combina in 8 dimensioni, ciascuna normalizzata su scala 0–5.</p>
+      <p style="margin-top:8px">Ogni dimensione parte da un rapporto <b>0.0 – 1.0</b> che viene poi moltiplicato per 5. Il <b>punteggio finale</b> dello step è la media aritmetica delle 8 dimensioni; il KPI in testata è la media su tutti i 5 step.</p>
+    </div>
+    <div class="meth-grid">
+      <div class="meth-card">
+        <div class="meth-dim">Aderenza</div>
+        <div class="meth-formula">media(path_score, string_score) × 5</div>
+        <p>Misura quanto l'output rispetta le specifiche del prompt. Il grader verifica la presenza dei <b>file richiesti</b> (required_paths) e delle <b>stringhe attese</b> (required_strings) definiti nello scenario. Se lo step richiede 4 file e l'agente ne crea 3, il rapporto è 0.75 → punteggio 3.75.</p>
+      </div>
+      <div class="meth-card">
+        <div class="meth-dim">Correttezza</div>
+        <div class="meth-formula">media(analyze_ok, build_ok, test_ok) × 5</div>
+        <p>Valuta se il codice prodotto è funzionalmente corretto. Vengono eseguiti tre comandi della toolchain Flutter: <b>flutter analyze</b> (analisi statica), <b>flutter build bundle</b> (compilazione) e <b>flutter test</b> (test unitari). Ogni check vale 0 o 1; la media dei tre produce il rapporto. Se tutti passano → 5.0, se uno fallisce → 3.33.</p>
+      </div>
+      <div class="meth-card">
+        <div class="meth-dim">Completezza</div>
+        <div class="meth-formula">media(path_score, string_score) × 5</div>
+        <p>Misura il grado di completamento rispetto agli artefatti attesi. Coincide con l'evidence score: la media tra la percentuale di path trovati e la percentuale di stringhe trovate nei file di progetto. Uno step che richiede 6 stringhe e ne trova 5 avrà completezza = (1.0 + 0.83) / 2 × 5 = 4.58, assumendo tutti i path presenti.</p>
+      </div>
+      <div class="meth-card">
+        <div class="meth-dim">Coerenza</div>
+        <div class="meth-formula">max(0, 1.0 − 0.5×regressione − 0.15×rewrite_ratio) × 5</div>
+        <p>Valuta se l'agente ha esteso il progetto senza rompere quanto già funzionava. Se lo step introduce una <b>regressione</b> (test o build precedentemente verdi che ora falliscono) si sottrae 0.5. Se l'agente riscrive file esistenti invece di estenderli, il <b>rewrite_ratio</b> (calcolato dal diff Git) penalizza fino al 15%. Un'esecuzione pulita senza regressioni né riscritture ottiene 5.0.</p>
+      </div>
+      <div class="meth-card">
+        <div class="meth-dim">Architettura</div>
+        <div class="meth-formula">media(string_score, coerenza) × 5</div>
+        <p>Proxy della qualità strutturale del codice. Combina la presenza delle stringhe attese (che verificano pattern architetturali come nomi di classi, import, e convenzioni) con il punteggio di coerenza. Un codice che rispetta i pattern richiesti e non introduce regressioni ottiene il massimo.</p>
+      </div>
+      <div class="meth-card">
+        <div class="meth-dim">Manutenibilità</div>
+        <div class="meth-formula">media(analyze_ok, coerenza) × 5</div>
+        <p>Indica quanto il codice è manutenibile nel tempo. Si basa sul superamento dell'<b>analisi statica</b> di Flutter (lint, warning, errori di tipo) e sul punteggio di coerenza. Un codice che passa l'analyzer e non introduce regressioni è considerato manutenibile.</p>
+      </div>
+      <div class="meth-card">
+        <div class="meth-dim">Production Readiness</div>
+        <div class="meth-formula">media(build_ok, test_ok) × 5</div>
+        <p>Valuta se il codice è pronto per un rilascio. Richiede che il progetto <b>compili</b> correttamente (flutter build bundle) e che i <b>test</b> passino (flutter test). È la dimensione più binaria: se entrambi passano → 5.0, se uno fallisce → 2.5, se entrambi falliscono → 0.</p>
+      </div>
+      <div class="meth-card">
+        <div class="meth-dim">Giudizio</div>
+        <div class="meth-formula">media(completezza, correttezza, coerenza) × 5</div>
+        <p>Dimensione sintetica che riflette la capacità complessiva dell'agente di prendere buone decisioni. Combina completezza (ha fatto tutto?), correttezza (funziona?) e coerenza (non ha rotto nulla?). È il segnale più equilibrato della qualità dell'intervento.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== FINDINGS ===== -->
   <div class="section-title">Evidenze Chiave</div>
   <div class="findings-grid" id="findings-grid"></div>
@@ -566,7 +670,7 @@ const kpis = [
   { label:'Successo Task',          cx:'5 / 5',  cp:'5 / 5',  delta:null,                cls:'neutral',
     tip:'Numero di step completati con successo su 5 totali. Uno step è superato quando l\'auto-grader passa (build + analyze + test tutti verdi).' },
   { label:'Punteggio Qualità Medio', cx:'4.85',   cp:'4.71',   delta:'Codex +3%',         cls:'positive',
-    tip:'Media del <b>final_score</b> su tutti gli step. Il punteggio di ogni step è la media di 8 dimensioni auto-valutate (scala 0–5): <b>aderenza</b> (al prompt), <b>architettura</b>, <b>coerenza</b>, <b>completezza</b>, <b>correttezza</b>, <b>giudizio</b>, <b>manutenibilità</b>, <b>production_readiness</b>.' },
+    tip:'Media del <b>final_score</b> su tutti gli step. Ogni dimensione parte da un rapporto normalizzato 0–1 (es. file trovati / file attesi) che viene poi <b>moltiplicato × 5</b> per ottenere la scala 0–5.<br><br><b>Aderenza</b> — (path trovati + stringhe trovate) / totali attesi × 5<br><b>Correttezza</b> — media(analyze ok, build ok, test ok) × 5<br><b>Completezza</b> — media(path score, string score) × 5<br><b>Coerenza</b> — 1.0 − 0.5 se regressione − 15% del tasso di riscrittura, × 5<br><b>Architettura</b> — media(string score, coerenza) × 5<br><b>Manutenibilità</b> — media(analyze ok, coerenza) × 5<br><b>Prod. Readiness</b> — media(build ok, test ok) × 5<br><b>Giudizio</b> — media(completezza, correttezza, coerenza) × 5<br><br>Il punteggio finale dello step è la media delle 8 dimensioni. Il KPI è la media su tutti i 5 step.' },
   { label:'Tempo Totale',           cx:'727 s',  cp:'943 s',  delta:'Codex 23% più veloce', cls:'positive',
     tip:'Somma del tempo wall-clock su tutti i 5 step. Misurato dall\'avvio della sessione PTY alla chiusura, incluso il tempo di attesa per le approvazioni dell\'operatore.' },
   { label:'Richieste Approvazione',  cx:'20',     cp:'31',     delta:'Copilot +55%',      cls:'negative',
