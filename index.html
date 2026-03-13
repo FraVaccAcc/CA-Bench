@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -464,21 +464,21 @@
   <div class="hero-inner">
     <div class="hero-top">
       <div class="hero-text">
-        <div class="hero-brand">CA-Bench · Coding Agent Benchmark</div>
+        <div class="hero-brand">CA-Bench · Benchmark per Coding Agent</div>
         <h1>Codex vs Copilot</h1>
-        <p class="subtitle">Flutter Incremental — 5 step progressive build</p>
+        <p class="subtitle">Flutter Incrementale — 5 step di build progressiva</p>
       </div>
       <div class="hero-badges">
-        <span>Model <b>gpt-5.4</b></span>
-        <span>Reasoning <b>medium</b></span>
-        <span>Steps <b>5</b></span>
+        <span>Modello <b>gpt-5.4</b></span>
+        <span>Ragionamento <b>medio</b></span>
+        <span>Step <b>5</b></span>
       </div>
     </div>
     <div class="hero-divider"></div>
     <div class="hero-bottom">
-      <span>Operator policy: <b>Passive only</b></span>
-      <span>Execution: <b>Interactive PTY</b></span>
-      <span>Replicates: <b>1 per step</b></span>
+      <span>Operatore: <b>Solo passivo</b></span>
+      <span>Esecuzione: <b>PTY interattiva</b></span>
+      <span>Repliche: <b>1 per step</b></span>
     </div>
   </div>
 </header>
@@ -492,35 +492,35 @@
   </div>
 
   <!-- ===== KPI ===== -->
-  <div class="section-title">Headline KPIs</div>
+  <div class="section-title">KPI Principali</div>
   <div class="kpi-grid" id="kpi-grid"></div>
 
   <!-- ===== FINDINGS ===== -->
-  <div class="section-title">Key Findings</div>
+  <div class="section-title">Evidenze Chiave</div>
   <div class="findings-grid" id="findings-grid"></div>
 
   <!-- ===== CHARTS ===== -->
-  <div class="section-title">Per-Step Comparison</div>
+  <div class="section-title">Confronto per Step</div>
   <div class="chart-grid">
-    <div class="chart-card"><h3>Wall Clock Time (s)</h3><canvas id="chart-wall"></canvas></div>
-    <div class="chart-card"><h3>Approval Prompts</h3><canvas id="chart-approvals"></canvas></div>
-    <div class="chart-card"><h3>Quality Score</h3><canvas id="chart-score"></canvas></div>
+    <div class="chart-card"><h3>Tempo di Esecuzione (s)</h3><canvas id="chart-wall"></canvas></div>
+    <div class="chart-card"><h3>Richieste di Approvazione</h3><canvas id="chart-approvals"></canvas></div>
+    <div class="chart-card"><h3>Punteggio Qualità</h3><canvas id="chart-score"></canvas></div>
     <!-- <div class="chart-card"><h3>Weighted Intervention Burden</h3><canvas id="chart-burden"></canvas></div> -->
-    <div class="chart-card"><h3>Output Tokens</h3><canvas id="chart-tokens"></canvas></div>
+    <div class="chart-card"><h3>Token in Output</h3><canvas id="chart-tokens"></canvas></div>
     <!-- <div class="chart-card"><h3>Lines of Code Added</h3><canvas id="chart-lines"></canvas></div> -->
-    <div class="chart-card wide"><h3>Quality Radar — All Steps Average</h3><canvas id="chart-radar"></canvas></div>
+    <div class="chart-card wide"><h3>Radar Qualità — Media su tutti gli Step</h3><canvas id="chart-radar"></canvas></div>
   </div>
 
   <!-- ===== TABLE ===== -->
-  <div class="section-title">Step Detail</div>
+  <div class="section-title">Dettaglio per Step</div>
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <th>Step</th><th>Title</th><th>Agent</th><th>Score</th><th>Time</th>
-          <th>Approvals</th>
-          <th>Build</th><th>Analyze</th><th>Test</th>
-          <th>Lines +</th><th>Tokens Out</th><th>Errors</th>
+          <th>Step</th><th>Titolo</th><th>Agente</th><th>Punteggio</th><th>Tempo</th>
+          <th>Approvazioni</th>
+          <th>Build</th><th>Analisi</th><th>Test</th>
+          <th>Righe +</th><th>Token Out</th><th>Errori</th>
         </tr>
       </thead>
       <tbody id="detail-tbody"></tbody>
@@ -528,7 +528,7 @@
   </div>
 </div>
 
-<div class="footer">CA-Bench · Flutter Incremental Benchmark · 5 steps · 10 step records (1 replicate per agent)</div>
+<div class="footer">CA-Bench · Benchmark Flutter Incrementale · 5 step · 10 record (1 replica per agente)</div>
 
 <script>
 // ===== DATA =====
@@ -563,20 +563,20 @@ const stepLabels = steps.map(s => `Step ${s.i}`);
 
 // ===== KPI CARDS =====
 const kpis = [
-  { label:'Task Success',         cx:'5 / 5',  cp:'5 / 5',  delta:null,                cls:'neutral',
-    tip:'Number of steps completed successfully out of 5 total. A step is successful when the auto-grader passes (build + analyze + test all green).' },
-  { label:'Avg Quality Score',    cx:'4.85',   cp:'4.71',   delta:'Codex +3%',         cls:'positive',
-    tip:'Mean of <b>final_score</b> across all steps. Each step score is the average of 8 auto-graded dimensions (0–5 scale): <b>aderenza</b> (adherence to prompt), <b>architettura</b> (architecture quality), <b>coerenza</b> (consistency), <b>completezza</b> (completeness), <b>correttezza</b> (correctness), <b>giudizio</b> (judgment), <b>manutenibilità</b> (maintainability), <b>production_readiness</b>.' },
-  { label:'Total Wall Clock',     cx:'727 s',  cp:'943 s',  delta:'Codex 23% faster',  cls:'positive',
-    tip:'Sum of wall-clock time across all 5 steps. Measured from PTY session start to session end, including operator approval wait time.' },
-  { label:'Approval Prompts',     cx:'20',     cp:'31',     delta:'Copilot +55%',      cls:'negative',
-    tip:'Total number of times the agent paused to ask the human operator for permission (e.g. "May I run this command?"). Each prompt blocks execution until approved. Extracted from native session telemetry.' },
+  { label:'Successo Task',          cx:'5 / 5',  cp:'5 / 5',  delta:null,                cls:'neutral',
+    tip:'Numero di step completati con successo su 5 totali. Uno step è superato quando l\'auto-grader passa (build + analyze + test tutti verdi).' },
+  { label:'Punteggio Qualità Medio', cx:'4.85',   cp:'4.71',   delta:'Codex +3%',         cls:'positive',
+    tip:'Media del <b>final_score</b> su tutti gli step. Il punteggio di ogni step è la media di 8 dimensioni auto-valutate (scala 0–5): <b>aderenza</b> (al prompt), <b>architettura</b>, <b>coerenza</b>, <b>completezza</b>, <b>correttezza</b>, <b>giudizio</b>, <b>manutenibilità</b>, <b>production_readiness</b>.' },
+  { label:'Tempo Totale',           cx:'727 s',  cp:'943 s',  delta:'Codex 23% più veloce', cls:'positive',
+    tip:'Somma del tempo wall-clock su tutti i 5 step. Misurato dall\'avvio della sessione PTY alla chiusura, incluso il tempo di attesa per le approvazioni dell\'operatore.' },
+  { label:'Richieste Approvazione',  cx:'20',     cp:'31',     delta:'Copilot +55%',      cls:'negative',
+    tip:'Numero totale di volte in cui l\'agente si è fermato per chiedere il permesso all\'operatore umano (es. "Posso eseguire questo comando?"). Ogni richiesta blocca l\'esecuzione fino all\'approvazione. Estratto dalla telemetria nativa della sessione.' },
   // { label:'Accepted Actions',     cx:'107',    cp:'150',    delta:'Copilot +40%',      cls:'negative' },
   // { label:'Weighted Burden',      cx:'46',     cp:'64',     delta:'Copilot +39%',      cls:'negative' },
-  { label:'Output Tokens',        cx:'21.7 K', cp:'36.3 K', delta:'Copilot +67%',      cls:'negative',
-    tip:'Total output tokens generated by the model across all steps. Extracted from native session telemetry. Higher values indicate more verbose responses for equivalent task outcomes.' },
-  { label:'Passive Completions',  cx:'1',      cp:'0',      delta:'Codex only',        cls:'positive',
-    tip:'Number of steps completed with zero human interventions beyond the initial trust prompt. A passive completion means the agent worked fully autonomously from prompt to success.' },
+  { label:'Token in Output',        cx:'21.7 K', cp:'36.3 K', delta:'Copilot +67%',      cls:'negative',
+    tip:'Token di output totali generati dal modello su tutti gli step. Estratti dalla telemetria nativa. Valori più alti indicano risposte più verbose a parità di risultato.' },
+  { label:'Completamenti Passivi',  cx:'1',      cp:'0',      delta:'Solo Codex',        cls:'positive',
+    tip:'Numero di step completati senza alcun intervento umano oltre al trust prompt iniziale. Un completamento passivo significa che l\'agente ha lavorato in piena autonomia dal prompt al successo.' },
 ];
 
 const kpiGrid = document.getElementById('kpi-grid');
@@ -592,7 +592,7 @@ kpis.forEach(k => {
       <div class="divider"></div>
       <div class="val copilot"><div class="num">${k.cp}</div><div class="agent-label">Copilot</div></div>
     </div>
-    <div class="delta-badge ${k.cls}">${k.delta || 'Tie'}</div>
+    <div class="delta-badge ${k.cls}">${k.delta || 'Parità'}</div>
   `;
   kpiGrid.appendChild(card);
 });
@@ -600,34 +600,34 @@ kpis.forEach(k => {
 // ===== FINDINGS =====
 const findings = [
   {
-    icon:'🖐', title:'Human Friction — Copilot requires ~55% more approvals',
-    body:`Across all 5 steps, Copilot triggered <b>31 approval prompts</b> vs Codex's <b>20</b>. The gap widens on complex steps (Step 4: 10 vs 7, Step 1: 9 vs 6). This is the single largest operational difference.`,
-    m:[{l:'Codex avg / step',v:'4.0',c:CODEX},{l:'Copilot avg / step',v:'6.2',c:COPILOT}]
+    icon:'🖐', title:'Frizione Umana — Copilot richiede ~55% di approvazioni in più',
+    body:`Su tutti i 5 step, Copilot ha richiesto <b>31 approvazioni</b> vs le <b>20</b> di Codex. Il divario si allarga sugli step complessi (Step 4: 10 vs 7, Step 1: 9 vs 6). È la differenza operativa più significativa.`,
+    m:[{l:'Media Codex / step',v:'4.0',c:CODEX},{l:'Media Copilot / step',v:'6.2',c:COPILOT}]
   },
   {
-    icon:'⏱', title:'Execution Speed — Codex is ~25% faster overall',
-    body:`Codex completed the pipeline in <b>727 s</b> vs <b>943 s</b>. Most dramatic on Step 1 (136 s vs 313 s, 2.3× faster) and Step 4 (188 s vs 324 s, 1.7× faster).`,
-    m:[{l:'Codex total',v:'12 m 07 s',c:CODEX},{l:'Copilot total',v:'15 m 43 s',c:COPILOT}]
+    icon:'⏱', title:'Velocità di Esecuzione — Codex è ~23% più veloce',
+    body:`Codex ha completato la pipeline in <b>727 s</b> vs <b>943 s</b>. Differenza più marcata sullo Step 1 (136 s vs 313 s, 2.3× più veloce) e Step 4 (188 s vs 324 s, 1.7× più veloce).`,
+    m:[{l:'Totale Codex',v:'12 m 07 s',c:CODEX},{l:'Totale Copilot',v:'15 m 43 s',c:COPILOT}]
   },
   {
-    icon:'🪙', title:'Token Efficiency — Copilot uses 57% more output tokens',
-    body:`Copilot generated <b>36.3 K output tokens</b> vs Codex's <b>21.7 K</b> for equivalent quality results, suggesting more verbose responses per approval cycle.`,
-    m:[{l:'Codex tokens',v:'21.7 K',c:CODEX},{l:'Copilot tokens',v:'36.3 K',c:COPILOT}]
+    icon:'🪙', title:'Efficienza Token — Copilot usa il 67% di token in più',
+    body:`Copilot ha generato <b>36.3 K token di output</b> vs i <b>21.7 K</b> di Codex a parità di qualità, suggerendo risposte più verbose per ogni ciclo di approvazione.`,
+    m:[{l:'Token Codex',v:'21.7 K',c:CODEX},{l:'Token Copilot',v:'36.3 K',c:COPILOT}]
   },
   {
-    icon:'⭐', title:'Quality — Virtually identical output',
-    body:`Both scored within <b>1.5%</b> of each other (4.85 vs 4.78). 100% success, build, analyze and test pass rate. <b>Quality is not the differentiator — efficiency and friction are.</b>`,
-    m:[{l:'Codex avg',v:'4.85',c:CODEX},{l:'Copilot avg',v:'4.78',c:COPILOT}]
+    icon:'⭐', title:'Qualità — Output sostanzialmente identico',
+    body:`Entrambi hanno ottenuto punteggi entro il <b>3%</b> l'uno dall'altro (4.85 vs 4.71). Tasso di successo al 100% su build, analisi e test. <b>La qualità non è il fattore differenziante — lo sono efficienza e frizione.</b>`,
+    m:[{l:'Media Codex',v:'4.85',c:CODEX},{l:'Media Copilot',v:'4.71',c:COPILOT}]
   },
   {
-    icon:'🔧', title:'Tool Errors — Codex has more but self-recovers',
-    body:`Codex encountered <b>6.5 tool errors</b> vs Copilot's <b>0.5</b>, but recovered autonomously every time — no human help needed. This reflects a more aggressive tool-use strategy.`,
-    m:[{l:'Codex errors',v:'6.5',c:CODEX},{l:'Copilot errors',v:'0.5',c:COPILOT}]
+    icon:'🔧', title:'Errori Tool — Codex ne ha di più ma si auto-recupera',
+    body:`Codex ha incontrato <b>7 errori tool</b> vs <b>1</b> di Copilot, ma si è recuperato autonomamente ogni volta senza bisogno di aiuto umano. Riflette una strategia di utilizzo dei tool più aggressiva.`,
+    m:[{l:'Errori Codex',v:'7',c:CODEX},{l:'Errori Copilot',v:'1',c:COPILOT}]
   },
   {
-    icon:'🤖', title:'Autonomy — Codex achieved 1 passive completion',
-    body:`On Step 2 (Domain Model), one Codex replicate completed with <b>zero human interventions</b> — a fully autonomous run. Copilot never achieved this.`,
-    m:[{l:'Codex passive',v:'1',c:CODEX},{l:'Copilot passive',v:'0',c:COPILOT}]
+    icon:'🤖', title:'Autonomia — Codex ha ottenuto 1 completamento passivo',
+    body:`Sullo Step 2 (Modello Dominio), Codex ha completato il task con <b>zero interventi umani</b> — un'esecuzione completamente autonoma. Copilot non ci è mai riuscito.`,
+    m:[{l:'Passivi Codex',v:'1',c:CODEX},{l:'Passivi Copilot',v:'0',c:COPILOT}]
   },
 ];
 
